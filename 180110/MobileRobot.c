@@ -212,6 +212,8 @@ int main(void)
 	TIMSK=0x04;
 //	lcd_display_str(0,0,"START");
 	sei();
+
+	/*
 	while(1){
 
 
@@ -258,7 +260,7 @@ int main(void)
 			wall_reverse(1,1);		
 		}
 
-	}		
+	}	*/	
 }
 
 
@@ -321,6 +323,11 @@ void non_Holonomic(long Fx, long Fy, long Fw){
 		SetVelocity(i, V[i]*65536);
 	}
 	StartMotion();
+}
+
+ISR(TIMER1_OVF_vect){
+	TCNT1H=0xFF;	//0.01√ 
+	TCNT1L=0x70;
 }
 
 

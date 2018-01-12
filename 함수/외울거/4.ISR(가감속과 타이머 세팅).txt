@@ -1,0 +1,27 @@
+ISR (TIMER1_OVF_vect)
+{
+	TCNT1H=0xFF; TCNT1L=0x70; //0.01ÃÊ
+	++sec;
+	
+	disMD+=speed*0.01;
+	disW+=speedW*0.01;
+	disX+=(speedX*0.01);
+	disY+=(speedY*0.01);
+
+	if(next_speed>speed){
+		speed+=acc;
+		if(next_speed<=speed)speed=next_speed;
+	}
+	else if(next_speed<speed){
+		speed-=acc;
+		if(next_speed>=speed)speed=next_speed;
+	}
+	if(next_wspeed>wspeed){
+		wspeed+=accW;
+		if(next_wspeed<=wspeed)wspeed=next_wspeed;
+	}
+	else if(next_wspeed<wspeed){
+		wspeed-=accW;
+		if(next_wspeed>=wspeed)wspeed=next_wspeed;
+	}
+}

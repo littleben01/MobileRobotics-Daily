@@ -1,0 +1,3 @@
+volatile unsigned int sec=0;
+volatile float speed=0, next_speed=0, acc=5, wspeed=0, next_wspeed=0, accW=4;
+volatile float disX=0, disY=0, disW=0, disMD=0, speedX=0, speedY=0, speedW=0;

@@ -1,0 +1,43 @@
+
+int main(void)
+{    
+
+    Interface_init(); //인터페이스 초기화
+
+	LM629_HW_Reset();
+	MCU_init();	   // MCU 초기화
+	Motor_init();  // Motor 드라이버 초기화
+
+	Sensor_init();
+
+	DDRB=0x0F;		//LED, BZ, SW
+	TCCR1A=0x00;	// Clock value: 14.400 kHz
+	TCCR1B=0x05;
+
+	TCNT1H=0xFF;	//0.01초
+	TCNT1L=0x70;
+	TIMSK=0x04;
+
+	sei();
+
+	while(1){
+
+
+		if(SW1)
+		{
+
+		}
+
+		if(SW2)
+		{	
+
+
+		}
+
+		if(SW3)
+		{
+		
+		}
+
+	}		
+}

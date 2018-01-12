@@ -1,0 +1,61 @@
+void HolonomicW(int f_agl, int f_speed, int fw_speed){
+	long Fx=0, Fy=0, Fw=0; //속도	
+	double radianA=0, radianB=0;
+	int DesiredDirection = 0;
+	double V[3]={0,0,0};
+
+	unsigned char i=0;
+
+	// 좌표계 변환
+	if(f_agl <= 180) DesiredDirection = 180 - f_agl;
+	else if(f_agl > 180) DesiredDirection = 540 - f_agl;
+	
+	// 라디안 변환
+	radianA = (180-(double)DesiredDirection) * 0.017453; // 0.017453 = 3.141592 / 180
+	radianB = (90-(double)DesiredDirection) * 0.017453;
+
+	
+	// 120도 방향 간격의 휠 방향으로 작용하는 힘의 벡터합을 구하기 위한 각 wheel의 Motor contribution 구하기.. 
+	Fx = f_speed * cos(radianA);
+	Fy = f_speed * cos(radianB);
+	Fw=fw_speed;
+
+	if(f_agl<0 || f_agl>=360){
+		if(f_agl<0)Fw = -f_speed;
+		else if(f_agl>=360)Fw = f_speed;
+		Fx=0;
+		Fy=0;
+	}
+		
+	V[0]=((( 0.057*Fx)+(0.033*Fy)+(0.141*Fw)));		//100 1 100 1		?
+	V[1]=(((-0.065*Fy)+(0.141*Fw)));				//200 1 100 1       ?
+	V[2]=(((-0.057*Fx)+(0.033*Fy)+(0.141*Fw)));		//100 1 100 1
+	
+    for(i=0;i<3;++i){
+		if(V[i]>=40)V[i]=40;
+		if(V[i]<=(-40))V[i]=-40;
+		SetVelocity(i, V[i]*65536);
+	}
+	StartMotion();
+}
+
+
+
+void non_Holonomic(long Fx, long Fy, long Fw){
+
+	unsigned char i=0;
+	double V[3]={0,0,0};
+
+	if(Fx==0 && Fy==0 && Fw==0)StopMotion(STOP_ABRUPTLY);
+
+	V[0]=((( 0.056*Fx)+(0.033*Fy)+(0.14*Fw)));
+	V[1]=(((-0.065*Fy)+(0.14*Fw)));
+	V[2]=(((-0.056*Fx)+(0.033*Fy)+(0.14*Fw)));
+
+	for(i=0;i<3;++i){
+		if(V[i]>=40)V[i]=40;
+		if(V[i]<=(-40))V[i]=-40;
+		SetVelocity(i, V[i]*65536);
+	}
+	StartMotion();
+}

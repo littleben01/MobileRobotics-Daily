@@ -1,0 +1,6 @@
+#define BZ_PORT		PORTB
+#define BZ			3
+
+#define BZ_ON()		(BZ_PORT |=  (1 << BZ));
+#define BZ_OFF() 	(BZ_PORT &= ~(1 << BZ));
+

@@ -1,0 +1,41 @@
+
+int LINE(void)
+{
+	unsigned char SENSOR=0;
+	int err=0;
+	unsigned char dir;
+	sec=0;
+	while(1)
+	{
+		SENSOR=READ_SENSOR();	
+		if( SENSOR&0x08 )
+		{
+			sec=0;
+			err=3;
+			//몇개의 줄을 탈것인지에 따라서 에러값을 조정해준다.(줄1개=>3)
+			//에러값이 클수록 전진할때 크게 도리도리한다
+		}
+		else if (!(SENSOR&0x08) )err=-15;
+
+		if(sec>50||(SENSOR&0x1C)==0x1C)
+		{
+			dir=0;
+			break;
+			
+		}		
+		if((SENSOR&0x04))
+		{
+		
+			dir=2;
+			break;
+		}
+		else if((SENSOR&0x10))
+		{
+			dir=3;
+			break;
+		}
+		HolonomicW(0,150,err);
+	}
+	non_Holonomic(0,0,0);
+	return dir;
+}

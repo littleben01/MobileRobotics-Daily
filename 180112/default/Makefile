@@ -1,11 +1,11 @@
 ###############################################################################
-# Makefile for the project 180110
+# Makefile for the project 180112
 ###############################################################################
 
 ## General Flags
-PROJECT = 180110
+PROJECT = 180112
 MCU = atmega128
-TARGET = 180110.elf
+TARGET = 180112.elf
 CC = avr-gcc
 
 CPP = avr-g++
@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99     -DF_CPU=14745600UL -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS += -Wall -gdwarf-2 -std=gnu99       -DF_CPU=14745600UL -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -25,7 +25,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
-LDFLAGS +=  -Wl,-Map=180110.map
+LDFLAGS +=  -Wl,-Map=180112.map
 
 
 ## Intel Hex file production flags
@@ -37,19 +37,16 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Objects that must be built in order to link
-OBJECTS = Interface.o MobileRobot.o Motor.o Move.o Sensor.o 
+OBJECTS = Interface.o Motor.o Move.o Sensor.o MobileRobot.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
 
 ## Build
-all: $(TARGET) 180110.hex 180110.eep 180110.lss size
+all: $(TARGET) 180112.hex 180112.eep 180112.lss size
 
 ## Compile
 Interface.o: ../Interface.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-MobileRobot.o: ../MobileRobot.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 Motor.o: ../Motor.c
@@ -59,6 +56,9 @@ Move.o: ../Move.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 Sensor.o: ../Sensor.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+MobileRobot.o: ../MobileRobot.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link
@@ -81,7 +81,7 @@ size: ${TARGET}
 ## Clean target
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECTS) 180110.elf dep/* 180110.hex 180110.eep 180110.lss 180110.map
+	-rm -rf $(OBJECTS) 180112.elf dep/* 180112.hex 180112.eep 180112.lss 180112.map
 
 
 ## Other dependencies
