@@ -2,6 +2,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <math.h>
+#include <stdio.h>
 #include "Interface.h"
 #include "Move.h"
 #include "Motor.h"
@@ -77,6 +78,8 @@ int cross[12][4] = {{1,0,0,4},{2,0,1,5},{3,0,2,6},{0,0,3,7},
 
 int LINE[18] = {100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
 
+void Turn_and_Drive(double f_agl, int f_speed, int fw_speed, unsigned int mm,int dgree, unsigned int stop, unsigned int wstop);
+
 int Capt()
 {
 	if(Camera_Cmd(1,102) != 0) return 1;
@@ -86,14 +89,27 @@ int Capt()
 int MoveLine(int speed)
 {
 	sec = 0;
+	char str[40];
+	sprintf(str,"MoveLine");
+	lcd_display_str(0,0,str);
 	while(1)
 	{
-		if(READ_SENSOR() == 28 ) return 0;
-		if(READ_SENSOR() == 24 ) return 1;
-		if(READ_SENSOR() == 12 ) return 2;
-
-		if(psd_value[0] > 100) return 3;
-
+		if(READ_SENSOR() == 28 ) {
+			display_char(1,0,28);
+			return 0;
+		}
+		if(READ_SENSOR() == 24 ){
+		 	display_char(1,0,24);
+			return 1;
+		}
+		if(READ_SENSOR() == 12 ){
+			display_char(1,0,12);
+			return 2;
+		}
+		if(psd_value[0] > 100){
+			display_char(1,0,100);
+			return 3;
+		}
 		if(READ_SENSOR() == 8) non_Holonomic(speed,0,15);
 		if(READ_SENSOR() != 8) non_Holonomic(speed,0,-15);
 	}
@@ -132,6 +148,7 @@ int NextMove(int nowcross)
 			return SOUTH;
 		}
 	}
+	return 0;
 }
 
 int DumpCross(int nowcross, int nextdir)
@@ -196,14 +213,13 @@ void SmartMoving()
 					else //왼쪽라인
 					{
 						Turn_and_Drive(0, 0, 150, 0,-160, 0, 0);
-						while(READ_SENSOR() != 8) non_Holonomic(0,0,-100);
 						non_Holonomic(150,0,0);
 						_delay_ms(1000);
 						non_Holonomic(-150,0,0);
 						_delay_ms(1000);
 					}	
 					if(Capt() == 1)
-					{
+					{	
 						Puck++;
 					}
 				}
@@ -215,11 +231,21 @@ void SmartMoving()
 					count++;
 					if(result == 1) //오른쪽라인 
 					{
-						
+						Turn_and_Drive(0, 0, 150, 0,160, 0, 0);
+						while(READ_SENSOR() != 8) non_Holonomic(0,0,100);
+						non_Holonomic(150,0,0);
+						_delay_ms(1000);
+						non_Holonomic(-150,0,0);
+						_delay_ms(1000);	
 					}
 					else //왼쪽라인
 					{
-
+						Turn_and_Drive(0, 0, 150, 0,-160, 0, 0);
+						while(READ_SENSOR() != 8) non_Holonomic(0,0,-100);
+						non_Holonomic(150,0,0);
+						_delay_ms(1000);
+						non_Holonomic(-150,0,0);
+						_delay_ms(1000);
 					}	
 					if(Capt() == 1)
 					{
