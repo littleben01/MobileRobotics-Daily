@@ -67,22 +67,24 @@ volatile float speed=0, next_speed=0, acc=5, wspeed=0, next_wspeed=0, accW=4;
 volatile float disX=0, disY=0, disW=0, disMD=0, speedX=0, speedY=0, speedW=0;
 
 
-#define EAST 0
-#define NORTH 1
-#define WEST 2
-#define SOUTH 3
-
-int cross[12][4] = {{1,0,0,4},{2,0,1,5},{3,0,2,6},{0,0,3,7},
-					{8,4,0,11},{9,5,8,12},{10,6,9,13},{0,7,10,14},
-					{15,11,0,0},{16,12,15,0},{17,13,16,0},{0,14,17,0}};
-
-int LINE[18] = {100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
-
-void Turn_and_Drive(double f_agl, int f_speed, int fw_speed, unsigned int mm,int dgree, unsigned int stop, unsigned int wstop);
 
 
-
-////////////////////////함수/////////////////////////
+void Holonomic_distance(int f_agl,int f_speed,unsigned int distance,unsigned stop){
+//1.각도	2.속도	3.거리	4.감속지점	
+	next_speed=f_speed;
+	acc=5;
+	TCNT1H=0xFF; TCNT1L=0x70;	//0.01초
+	sec=0;
+	disMD=0;	//거리 초기화
+	
+	while(1){
+	
+		HolonomicW(f_agl,speed,0);
+	
+		if(disMD>=distance) break;
+		else if(disMD>=stop) next_speed=50;
+	}
+}
 
 //1. 이동각도 (방향)
 //2. 이동속도
@@ -144,41 +146,6 @@ void Turn_and_Drive(double f_agl, int f_speed, int fw_speed, unsigned int mm,int
 	}
 }
 
-void Holonomic_distance(int f_agl,int f_speed,unsigned int distance,unsigned stop){
-//1.각도	2.속도	3.거리	4.감속지점	
-	next_speed=f_speed;
-	acc=5;
-	TCNT1H=0xFF; TCNT1L=0x70;	//0.01초
-	sec=0;
-	disMD=0;	//거리 초기화
-	
-	while(1){
-	
-		HolonomicW(f_agl,speed,0);
-	
-		if(disMD>=distance) break;
-		else if(disMD>=stop) next_speed=50;
-	}
-}
-
-
-unsigned char READ_barcode(int f_speed){
-	disMD=0;	//거리 초기화
-	unsigned int flag = 0, count = 0;
-	while(!(disMD>=2000)){
-		HolonomicW(0,f_speed,0);
-		if(READ_SENSOR()&0x08){
-			flag++;
-		}
-		if(flag ==1 || (READ_SENSOR()&0x08)){
-			flag--;
-			count++;
-		}
-	}
-	non_Holonomic(0,0,0);
-	return count;
-}
-
 unsigned char READ_barcode_iron(unsigned int distance,int f_speed){
 	unsigned char count = 0;
 	next_speed=f_speed;
@@ -197,6 +164,14 @@ unsigned char READ_barcode_iron(unsigned int distance,int f_speed){
 	return count;
 }
 
+
+
+void Holonomic_psd(int sensor,int length,int speed){
+	while(psd_value[sensor]<length){
+		HolonomicW(0,speed,0);
+	}
+	non_Holonomic(0,0,0);
+}
 
 int main(void)
 {    
@@ -222,19 +197,26 @@ int main(void)
 			
 //		int left,right;
 
+//1. 이동각도 (방향)
+//2. 이동속도
+//3. 회전이동속도 마이너스 일경우 왼쪽회전
+//4. 이동거리
+//5. 회전이동거리 (회전 각도)
+//6. 정지 시점
+//7. 회전정지시점
+
 		if(SW1)
 		{
-			while(!(psd_value[0]>165)){
-				non_Holonomic(200,0,0);
-			}
-			non_Holonomic(0,0,100);
-			_delay_ms(900);
+			Holonomic_psd(0,150,200);
+			Turn_And_Drive(0,0,-100,0,90,0,0);
+			non_Holonomic(0,0,0);
 
 		}
 
 		if(SW2)
 		{
-			
+			Turn_And_Drive(0,0,-100,0,90,0,0);
+			non_Holonomic(0,0,0);
 		}
 
 		if(SW3)

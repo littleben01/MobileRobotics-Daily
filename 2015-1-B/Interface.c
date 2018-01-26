@@ -21,7 +21,7 @@ void MCU_init(void)
 	UCSR1B=0x98;
 	UCSR1C=0x06;
 	UBRR1H=0x00;
-	UBRR1L=0x5F;
+	UBRR1L=0x07; //신형카메라 쓸려면 0x07 써야된다
 
 	sei();
 }

@@ -27,6 +27,13 @@ void Camera_init(void){
 	}
 }
 
+unsigned char Camera_Set(unsigned char cmd){
+	
+	putchar1(cmd);
+	
+}
+
+
 unsigned char Camera_Cmd(unsigned char color, unsigned char cmd){
 	
 	volatile unsigned char buff=0, data=0;

@@ -161,42 +161,37 @@ void Holonomic_distance(int f_agl,int f_speed,unsigned int distance,unsigned sto
 	}
 }
 
-
-unsigned char READ_barcode(int f_speed){
-	disMD=0;	//거리 초기화
-	unsigned int flag = 0, count = 0;
-	while(!(disMD>=2000)){
-		HolonomicW(0,f_speed,0);
-		if(READ_SENSOR()&0x08){
-			flag++;
-		}
-		if(flag ==1 || (READ_SENSOR()&0x08)){
-			flag--;
-			count++;
-		}
-	}
-	non_Holonomic(0,0,0);
-	return count;
-}
-
-unsigned char READ_barcode_iron(unsigned int distance,int f_speed){
-	unsigned char count = 0;
-	next_speed=f_speed;
-	acc=5;
-	TCNT1H=0xFF; TCNT1L=0x70;	//0.01초
-	sec=0;
-	disMD=0;	//거리 초기화
-	while(!(disMD>=2000)){
+void Holonomic_psd(int sensor,int length,int speed){
+	while(psd_value[sensor]<length){
 		HolonomicW(0,speed,0);
-		if(READ_SENSOR()&0x08) {
-			count++;
-			while(READ_SENSOR()&0x01);	
-		}
 	}
 	non_Holonomic(0,0,0);
-	return count;
 }
 
+void wall_follow(int mode, int end){
+	if(mode==1){
+		while(1){
+			if(psd_value[0] > 80 && end == 1) break;
+			if(psd_value[1] < 90 && end == 2) break;
+			HolonomicW(0,200,psd_value[1]-130);
+		}
+		non_Holonomic(0,0,0);
+	} else {
+		while(1){
+			if(psd_value[0] > 80 && end == 1) break;
+			if(psd_value[8] < 100 && end == 2) break;
+			HolonomicW(0,200,130-psd_value[8]);
+		}
+		non_Holonomic(0,0,0);
+	}
+}
+
+void between_fix(){
+	sec = 0;
+	while(sec!=300){
+		non_Holonomic(0,psd_value[2]-psd_value[7],0);
+	}
+}
 
 int main(void)
 {    
@@ -222,28 +217,283 @@ int main(void)
 			
 //		int left,right;
 
+//1. 이동각도 (방향)
+//2. 이동속도
+//3. 회전이동속도 마이너스 일경우 왼쪽회전
+//4. 이동거리
+//5. 회전이동거리 (회전 각도)
+//6. 정지 시점
+//7. 회전정지시점
+int color = 0;
+int camera = 0;
 		if(SW1)
 		{
-			non_Holonomic(200,0,0);
+			
+			wall_follow(2,1);
+			Turn_and_Drive(0,150,-100,150,90,0,0);
+			non_Holonomic(0,0,0);
+			wall_follow(2,1);
+			if(Camera_Cmd(1,102)) 	color = 1;
+			else 					color = 2;
+		
+			display_char(1,5,color);
+				
+			Turn_and_Drive(-90,150,-100,100,90,0,0);
+
+			sec = 0;
+			
+			while(sec!=500){
+				camera = Camera_Cmd(1,102);
+				non_Holonomic(0,(camera-128)*1.5,0);
+				display_char(0,2,camera);
+			}
+
+			Turn_and_Drive(0,150,0,225,0,0,0);
+			Turn_and_Drive(270,150,0,70,0,0,0);
+			Turn_and_Drive(0,150,0,45,0,0,0);
+			Turn_and_Drive(90,150,0,130,0,0,0);
+			Turn_and_Drive(180,150,0,290,0,0,0);
+			non_Holonomic(0,0,0);
+
+			////////////////////////////////////////////////////
+			
+			Turn_and_Drive(90,150,0,250,0,0,0);
+			Turn_and_Drive(0,150,0,250,0,0,0);
+			Turn_and_Drive(270,150,0,115,0,0,0);
+			Turn_and_Drive(180,150,0,180,0,0,0);
+
+			sec = 0;
+			while(sec!=200){
+				camera = Camera_Cmd(2,102);
+				non_Holonomic(0,(camera-128),0);
+			}
+			Turn_and_Drive(0,150,0,225,0,0,0);
+			non_Holonomic(0,0,0);
+			//////////////////////////1츠응 /////////////////
+
+			while(psd_value[8]<100){
+				non_Holonomic(0,175,0);
+			}
+
+			Turn_and_Drive(0,150,0,350,0,0,0);
+			Turn_and_Drive(0,150,40,330,90,0,0);
+			Turn_and_Drive(0,150,30,550,90,0,0);
+			non_Holonomic(0,0,0);
+
+			
+			/////////////////////돌기 ////////////////////
+
+			wall_follow(2,1);
+
+			if(Camera_Cmd(2,102)) 	color = 2;
+			else 					color = 1;
+			display_char(1,0,color);
+
+			Turn_and_Drive(180,150,-50,200,90,0,0);
+			sec = 0;
+			while(sec!=500){
+				camera = Camera_Cmd(2,102);
+				non_Holonomic(0,(camera-128)*1.5,0);
+				display_char(0,2,camera);
+			}
+			
+			Turn_and_Drive(0,150,0,325,0,0,0);
+			Turn_and_Drive(270,150,0,70,0,0,0);
+			Turn_and_Drive(0,150,0,45,0,0,0);
+			Turn_and_Drive(90,150,0,130,0,0,0);
+			Turn_and_Drive(180,150,0,290,0,0,0);
+			
+			while(sec!=500){
+				camera = Camera_Cmd(1,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+
+			Turn_and_Drive(90,150,0,100,0,0,0);
+			Turn_and_Drive(0,150,0,300,0,0,0);
+			Turn_and_Drive(270,150,0,170,0,0,0);
+			Turn_and_Drive(180,150,0,180,0,0,0);
+			while(sec!=500){
+				camera = Camera_Cmd(1,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+			Turn_and_Drive(0,150,0,175,0,0,0);
+
+			non_Holonomic(0,0,0);
+			
+			////////////////////////////2버언///////////////////
+
+
+			Turn_and_Drive(180,200,0,50,0,0,0);
+			Turn_and_Drive(180,200,-75,200,90,0,0);
+			Turn_and_Drive(0,300,75,400,90,0,0);
+			
+			Turn_and_Drive(0,200,0,800,0,0,0);
+			
+			Turn_and_Drive(0,150,-55,500,90,0,0);
+			Turn_and_Drive(-30,150,0,200,0,0,0);
+			wall_follow(1,1);
+			
+			if(Camera_Cmd(2,102)) 	color = 2;
+			else 					color = 1;
+			display_char(1,0,color);
+
+			Turn_and_Drive(180,200,0,325,0,0,0);
+			
+			between_fix();
+			Turn_and_Drive(180,150,0,300,0,0,0);
+			Turn_and_Drive(90,150,0,385,0,0,0);
+			Turn_and_Drive(180,150,0,200,0,0,0);
+			Camera_Set(15);	
+			sec = 0;
+			while(sec!=300){
+				camera = Camera_Cmd(1,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+			Turn_and_Drive(0,150,0,190,0,0,0);
+			Turn_and_Drive(180,150,0,155,0,0,0);
+			Turn_and_Drive(90,150,0,240,0,0,0);
+			Turn_and_Drive(0,150,0,125,0,0,0);
+			Turn_and_Drive(270,150,0,150,0,0,0);
+			Turn_and_Drive(180,150,0,100,0,0,0);
+			
+			sec = 0;
+			while(sec!=300){
+				camera = Camera_Cmd(2,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+			Turn_and_Drive(0,150,0,220,0,0,0);
+			non_Holonomic(0,0,0);
+
 		}
+//1. 이동각도 (방향)
+//2. 이동속도
+//3. 회전이동속도 마이너스 일경우 왼쪽회전
+//4. 이동거리
+//5. 회전이동거리 (회전 각도)
+//6. 정지 시점
+//7. 회전정지시점
 
 		if(SW2)
 		{
-			int black = READ_barcode(150);
-			display_char(1,0,black);
-			display_char(2,0,iron);
+		/*
+			while(psd_value[8]<120){
+				non_Holonomic(0,175,0);
+			}
+
+			Turn_and_Drive(0,150,0,350,0,0,0);
+			Turn_and_Drive(0,150,40,330,90,0,0);
+			Turn_and_Drive(0,150,30,550,90,0,0);
+			non_Holonomic(0,0,0);
+
+
+			wall_follow(2,1);
+			non_Holonomic(0,0,0);
+		*/	
+			
+			while(1){
+				display_char(0,0,psd_value[0]);
+			}
+
 		}
+//1.각도	2.속도	3.거리	4.감속지점	
+//////////////////////////////////////////////////
 
 		if(SW3)
 		{	
+//			wall_follow(2,1);
 
+//			if(Camera_Cmd(2,102)) 	color = 2;
+//			else 					color = 1;
+//			display_char(1,0,color);
+//
+//			Turn_and_Drive(180,150,-50,200,90,0,0);
+//			sec = 0;
+//			while(sec!=500){
+//				camera = Camera_Cmd(2,102);
+//				non_Holonomic(0,(camera-128)*1.5,0);
+//				display_char(0,2,camera);
+//			}
+//			
+//			Turn_and_Drive(0,150,0,325,0,0,0);
+//			Turn_and_Drive(270,150,0,70,0,0,0);
+//			Turn_and_Drive(0,150,0,45,0,0,0);
+//			Turn_and_Drive(90,150,0,130,0,0,0);
+//			Turn_and_Drive(180,150,0,290,0,0,0);
+//			
+//			while(sec!=500){
+//				camera = Camera_Cmd(1,102);
+//				non_Holonomic(0,(camera-128)*1.8,0);
+//				display_char(0,2,camera);
+//			}
+//
+//			Turn_and_Drive(90,150,0,100,0,0,0);
+//			Turn_and_Drive(0,150,0,300,0,0,0);
+//			Turn_and_Drive(270,150,0,170,0,0,0);
+//			Turn_and_Drive(180,150,0,180,0,0,0);
+//			while(sec!=500){
+//				camera = Camera_Cmd(1,102);
+//				non_Holonomic(0,(camera-128)*1.8,0);
+//				display_char(0,2,camera);
+//			}
+//			Turn_and_Drive(0,150,0,175,0,0,0);
+//
+//			non_Holonomic(0,0,0);
 
-			while(1){
-				display_char(0,5,psd_value[0]);
-				display_char(1,2,psd_value[2]);								
-				display_char(1,8,psd_value[7]);
-			}
+//1. 이동각도 (방향)
+//2. 이동속도
+//3. 회전이동속도 마이너스 일경우 왼쪽회전
+//4. 이동거리
+//5. 회전이동거리 (회전 각도)
+//6. 정지 시점
+//7. 회전정지시점
+			Turn_and_Drive(180,200,0,50,0,0,0);
+			Turn_and_Drive(180,200,-75,200,90,0,0);
+			Turn_and_Drive(0,300,75,400,90,0,0);
 			
+			Turn_and_Drive(0,200,0,800,0,0,0);
+			
+			Turn_and_Drive(0,150,-55,500,90,0,0);
+			Turn_and_Drive(-30,150,0,200,0,0,0);
+			wall_follow(1,1);
+			
+			if(Camera_Cmd(2,102)) 	color = 2;
+			else 					color = 1;
+			display_char(1,0,color);
+
+			Turn_and_Drive(180,200,0,325,0,0,0);
+			
+			between_fix();
+			Turn_and_Drive(180,150,0,300,0,0,0);
+			Turn_and_Drive(90,150,0,385,0,0,0);
+			Turn_and_Drive(180,150,0,200,0,0,0);
+			Camera_Set(15);	
+			sec = 0;
+			while(sec!=300){
+				camera = Camera_Cmd(1,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+			Turn_and_Drive(0,150,0,180,0,0,0);
+			Turn_and_Drive(180,150,0,155,0,0,0);
+			Turn_and_Drive(90,150,0,240,0,0,0);
+			Turn_and_Drive(0,150,0,80,0,0,0);
+			Turn_and_Drive(270,150,0,150,0,0,0);
+			Turn_and_Drive(180,150,0,80,0,0,0);
+			
+			sec = 0;
+			while(sec!=300){
+				camera = Camera_Cmd(2,102);
+				non_Holonomic(0,(camera-128)*1.8,0);
+				display_char(0,2,camera);
+			}
+			Turn_and_Drive(0,150,0,290,0,0,0);
+			non_Holonomic(0,0,0);
+			
+
 
 		}
 
